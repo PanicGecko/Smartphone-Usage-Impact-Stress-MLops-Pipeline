@@ -1,0 +1,13 @@
+{
+  "total_features": 16,
+  "drifted_features": 4,
+  "drift_share": 0.25,
+  "dataset_drift": false,
+  "status": "warning",
+  "drifted_feature_names": [
+    "notifications_per_day",
+    "social_media_hours",
+    "transaction_id",
+    "user_id"
+  ]
+}

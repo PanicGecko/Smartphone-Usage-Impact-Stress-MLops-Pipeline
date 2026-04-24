@@ -3,6 +3,12 @@ import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
+def select_columns(df, columns):
+    """Select specific columns from a dataframe."""
+    df = df.copy()
+    df = df[columns]
+    return df
+
 def validate_dataframe(df, required_columns, target_column):
     """Check that a dataframe meets basic requirements."""
     missing = [col for col in required_columns if col not in df.columns]
@@ -26,10 +32,6 @@ def clean_data(df, numeric_columns, categorical_columns):
         if col in df.columns:
             df[col] = df[col].fillna(df[col].median())
 
-    df['age'] = df['age'].astype(int)
-    df['notifications_per_day'] = df['notifications_per_day'].astype(int)
-    df['app_opens_per_day'] = df['app_opens_per_day'].astype(int)
-
     # Fill categorical missing values with mode
     for col in categorical_columns:
         if col in df.columns:
@@ -43,7 +45,19 @@ def encode_categoricals(df, columns):
     df = pd.get_dummies(df, columns=columns, drop_first=True, dtype=int)
     return df
 
-def preprocessor(minmax_cols, standard_cols):
+def encode_target(df, target_column):
+    """Encode target variable if it's categorical."""
+    df = df.copy()
+    df[target_column] = df[target_column].map({"Low": 0, "Medium": 1, "High": 2})
+    return df
+
+def decode_target(df, target_column):
+    """Decode target variable back to original categories."""
+    df = df.copy()
+    df[target_column] = df[target_column].map({0: "Low", 1: "Medium", 2: "High"})
+    return df
+
+def norm_preprocessor(minmax_cols, standard_cols):
     preprocessor = ColumnTransformer(
         transformers=[
             ("minmax", MinMaxScaler(), minmax_cols),

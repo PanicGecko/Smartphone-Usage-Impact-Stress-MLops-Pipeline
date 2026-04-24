@@ -10,12 +10,12 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 # Add src to path so we can import preprocessing
 sys.path.insert(0, os.path.dirname(__file__))
-from preprocessing import validate_dataframe, clean_data, encode_categoricals, check_data_quality
+from data_preprocessing import validate_dataframe, clean_data, encode_categoricals, check_data_quality, select_columns, decode_target, encode_target, norm_preprocessor
 
 # Configuration
 CONFIG = {
-    "data_url": "https://raw.githubusercontent.com/TripleTen-DS/Dataset/refs/heads/main/student_dropout_dataset.csv",
-    "target": "Dropout",
+    "data_url": "../data/main/Smartphone_Usage_And_Addiction_Analysis_3600_Rows.csv",
+    "model_type": "RandomForest",
     "test_size": 0.2,
     "random_state": 42,
     "n_estimators": 100,
@@ -27,11 +27,14 @@ CONFIG = {
     "categorical_columns": [
         'gender', 'academic_work_impact'
     ],
-    "min_accuracy": 0.35,
+    "minmax_columns": ["age", "sleep_hours"],
+    "standard_columns": ["daily_screen_time_hours", "social_media_hours", "gaming_hours",
+                 "work_study_hours", "notifications_per_day", "app_opens_per_day",
+                 "weekend_screen_time"],
+    "target": "stress_level",
+    "min_accuracy": 0.30,
     "min_f1": 0.30,
 }
-
-
 
 def load_data(url):
     """Load dataset from URL."""
@@ -49,11 +52,10 @@ def train_model(config=None):
     df = load_data(config["data_url"])
 
     # Drop ID column
-    if "Student_ID" in df.columns:
-        df = df.drop(columns=["Student_ID"])
+    df = select_columns(df, columns=config["numeric_columns"] + config["categorical_columns"] + [config["target"]])
 
     # Validate
-    required = config["numeric_columns"] + config["categorical_columns"] + [config["target"]]
+    required = config["numeric_columns"] + config["categorical_columns"]
     validate_dataframe(df, required, config["target"])
 
     # Data quality check
@@ -65,6 +67,14 @@ def train_model(config=None):
 
     # Encode
     df = encode_categoricals(df, config["categorical_columns"])
+    df = encode_target(df, config["target"])
+
+    # Normalize/standardize
+    preprocessor = norm_preprocessor(config["minmax_columns"], config["standard_columns"])
+
+    df['age'] = df['age'].astype(int)
+    df['notifications_per_day'] = df['notifications_per_day'].astype(int)
+    df['app_opens_per_day'] = df['app_opens_per_day'].astype(int)
 
     # Split
     X = df.drop(columns=[config["target"]])
@@ -76,6 +86,9 @@ def train_model(config=None):
         stratify=y
     )
     print(f"Train: {len(X_train)} rows, Test: {len(X_test)} rows")
+
+    X_train = preprocessor.fit_transform(X_train)
+    X_test = preprocessor.transform(X_test)
 
     # Train
     print("Training random forest...")
@@ -90,9 +103,9 @@ def train_model(config=None):
     y_pred = model.predict(X_test)
     metrics = {
         "accuracy": round(accuracy_score(y_test, y_pred), 4),
-        "precision": round(precision_score(y_test, y_pred), 4),
-        "recall": round(recall_score(y_test, y_pred), 4),
-        "f1_score": round(f1_score(y_test, y_pred), 4),
+        "precision": round(precision_score(y_test, y_pred, average='macro'), 4),
+        "recall": round(recall_score(y_test, y_pred, average='macro'), 4),
+        "f1_score": round(f1_score(y_test, y_pred, average='macro'), 4),
         "train_size": len(X_train),
         "test_size": len(X_test),
         "n_features": X_train.shape[1],

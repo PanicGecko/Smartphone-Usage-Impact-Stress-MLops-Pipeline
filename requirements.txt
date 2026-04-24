@@ -1,0 +1,6 @@
+pandas==3.0.2
+numpy==2.0.2
+scikit-learn==1.8.0
+pytest==9.0.3
+dvc[s3]==3.67.1
+evidently==0.4.40
