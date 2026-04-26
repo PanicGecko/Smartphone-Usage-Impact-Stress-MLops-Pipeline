@@ -11,10 +11,12 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 # Add src to path so we can import preprocessing
 sys.path.insert(0, os.path.dirname(__file__))
 from data_preprocessing import validate_dataframe, clean_data, encode_categoricals, check_data_quality, select_columns, decode_target, encode_target, norm_preprocessor
+from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Configuration
 CONFIG = {
-    "data_url": "../data/main/Smartphone_Usage_And_Addiction_Analysis_3600_Rows.csv",
+    "data_url": "data/main/Smartphone_Usage_And_Addiction_Analysis_3600_Rows.csv",
     "model_type": "RandomForest",
     "test_size": 0.2,
     "random_state": 42,
@@ -36,12 +38,10 @@ CONFIG = {
     "min_f1": 0.30,
 }
 
-def load_data(url):
-    """Load dataset from URL."""
-    print(f"Loading data from {url}...")
-    df = pd.read_csv(url)
-    print(f"Loaded {len(df)} rows, {len(df.columns)} columns")
-    return df
+def load_data(relative_path):
+    full_path = PROJECT_ROOT / relative_path
+    print(f"Loading data from {full_path}...")
+    return pd.read_csv(full_path)
 
 def train_model(config=None):
     """Full training pipeline. Returns metrics dictionary."""
