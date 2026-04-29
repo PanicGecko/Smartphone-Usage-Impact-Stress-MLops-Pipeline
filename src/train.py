@@ -19,6 +19,9 @@ def load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
+DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "train_config.yaml"
+CONFIG = load_config(DEFAULT_CONFIG_PATH)
+
 def load_data(relative_path):
     full_path = PROJECT_ROOT / relative_path
     print(f"Loading data from {full_path}...")
@@ -27,8 +30,7 @@ def load_data(relative_path):
 def train_model(config=None):
     """Full training pipeline. Returns metrics dictionary."""
     if config is None:
-        default_config_path = PROJECT_ROOT / "configs" / "train_config.yaml"
-        config = load_config(default_config_path)
+        config = CONFIG
 
     # Load
     df = load_data(config["data_url"])
