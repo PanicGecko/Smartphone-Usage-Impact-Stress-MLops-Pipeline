@@ -4,39 +4,20 @@ import json
 import os
 import sys
 import pickle
+import yaml
+import argparse
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-# Add src to path so we can import preprocessing
+# Add src to path so we can import local modules
 sys.path.insert(0, os.path.dirname(__file__))
 from data_preprocessing import validate_dataframe, clean_data, encode_categoricals, check_data_quality, select_columns, decode_target, encode_target, norm_preprocessor
+from evaluation import evaluate_model
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-# Configuration
-CONFIG = {
-    "data_url": "data/main/Smartphone_Usage_And_Addiction_Analysis_3600_Rows.csv",
-    "model_type": "RandomForest",
-    "test_size": 0.2,
-    "random_state": 42,
-    "n_estimators": 100,
-    "max_depth": 10,
-    "numeric_columns": [
-        'age', 'daily_screen_time_hours', 'social_media_hours', 'gaming_hours', 'work_study_hours', 'sleep_hours', 'notifications_per_day',
-                'app_opens_per_day', 'weekend_screen_time'
-    ],
-    "categorical_columns": [
-        'gender', 'academic_work_impact'
-    ],
-    "minmax_columns": ["age", "sleep_hours"],
-    "standard_columns": ["daily_screen_time_hours", "social_media_hours", "gaming_hours",
-                 "work_study_hours", "notifications_per_day", "app_opens_per_day",
-                 "weekend_screen_time"],
-    "target": "stress_level",
-    "min_accuracy": 0.30,
-    "min_f1": 0.30,
-}
+def load_config(config_path):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 def load_data(relative_path):
     full_path = PROJECT_ROOT / relative_path
@@ -46,7 +27,8 @@ def load_data(relative_path):
 def train_model(config=None):
     """Full training pipeline. Returns metrics dictionary."""
     if config is None:
-        config = CONFIG
+        default_config_path = PROJECT_ROOT / "configs" / "train_config.yaml"
+        config = load_config(default_config_path)
 
     # Load
     df = load_data(config["data_url"])
@@ -101,15 +83,10 @@ def train_model(config=None):
 
     # Evaluate
     y_pred = model.predict(X_test)
-    metrics = {
-        "accuracy": round(accuracy_score(y_test, y_pred), 4),
-        "precision": round(precision_score(y_test, y_pred, average='macro'), 4),
-        "recall": round(recall_score(y_test, y_pred, average='macro'), 4),
-        "f1_score": round(f1_score(y_test, y_pred, average='macro'), 4),
-        "train_size": len(X_train),
-        "test_size": len(X_test),
-        "n_features": X_train.shape[1],
-    }
+    metrics = evaluate_model(y_test, y_pred)
+    metrics["train_size"] = len(X_train)
+    metrics["test_size"] = len(X_test)
+    metrics["n_features"] = X_train.shape[1]
 
     print(f"\nResults:")
     print(f"  Accuracy:  {metrics['accuracy']}")
@@ -140,13 +117,20 @@ def train_model(config=None):
     return metrics
 
 if __name__ == "__main__":
-    metrics = train_model()
+    parser = argparse.ArgumentParser(description="Train ML model.")
+    parser.add_argument("--config", type=str, default="configs/train_config.yaml", help="Path to config YAML file")
+    args = parser.parse_args()
+
+    config_path = PROJECT_ROOT / args.config
+    config = load_config(config_path)
+
+    metrics = train_model(config)
 
     # Exit with error if thresholds not met
-    if metrics["accuracy"] < CONFIG["min_accuracy"]:
+    if metrics["accuracy"] < config["min_accuracy"]:
         print(f"\nFAILED: Accuracy below threshold")
         sys.exit(1)
-    if metrics["f1_score"] < CONFIG["min_f1"]:
+    if metrics["f1_score"] < config["min_f1"]:
         print(f"\nFAILED: F1 score below threshold")
         sys.exit(1)
 

@@ -1,0 +1,14 @@
+artifact_uri: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283/001384352cb34712b05d5435b1c86d9c/artifacts
+end_time: 1777478204253
+entry_point_name: ''
+experiment_id: '819851907152758283'
+lifecycle_stage: active
+run_id: 001384352cb34712b05d5435b1c86d9c
+run_name: gifted-lark-20
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1777478202631
+status: 3
+tags: []
+user_id: root

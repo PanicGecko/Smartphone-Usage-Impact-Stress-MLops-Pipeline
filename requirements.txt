@@ -4,3 +4,4 @@ scikit-learn==1.8.0
 pytest==9.0.3
 dvc[s3]==3.67.1
 evidently==0.4.40
+pyyaml==6.0.2

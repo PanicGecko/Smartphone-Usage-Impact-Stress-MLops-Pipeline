@@ -1,32 +1,34 @@
 import pandas as pd
 import sys
 import json
+import os
 from evidently.report import Report
 from evidently.metric_preset import DataDriftPreset
 
 # Configuration
-DRIFT_SHARE_WARNING = 0.20    # warn if more than 20% of features drift
-DRIFT_SHARE_CRITICAL = 0.40   # fail if more than 40% of features drift
+DRIFT_SHARE_WARNING = 0.20    
+DRIFT_SHARE_CRITICAL = 0.40   
 
-def check_drift(reference_path, current_path):
+def check_drift(reference_path, current_path, report_path="reports/drift_report.html"):
     """Run drift analysis and return status."""
     reference = pd.read_csv(reference_path)
     current = pd.read_csv(current_path)
 
     report = Report(metrics=[DataDriftPreset()])
     report.run(reference_data=reference, current_data=current)
+    
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
+    report.save_html(report_path)
+    print(f"Drift HTML report saved to {report_path}")
 
     result = report.as_dict()
     
-    # In newer versions of evidently, DataDriftPreset returns multiple metrics.
-    # We find the one containing 'drift_by_columns'
     drift_data = next((m["result"] for m in result["metrics"] if "drift_by_columns" in m["result"]), result["metrics"][0]["result"])
 
     total = drift_data["number_of_columns"]
     drifted = drift_data["number_of_drifted_columns"]
     share = drift_data["share_of_drifted_columns"]
 
-    # Build result
     check_result = {
         "total_features": total,
         "drifted_features": drifted,
@@ -35,7 +37,6 @@ def check_drift(reference_path, current_path):
         "status": "ok",
     }
 
-    # Determine status
     if share >= DRIFT_SHARE_CRITICAL:
         check_result["status"] = "critical"
     elif share >= DRIFT_SHARE_WARNING:
@@ -71,14 +72,13 @@ if __name__ == "__main__":
     if result["drifted_feature_names"]:
         print(f"\nDrifted features: {', '.join(result['drifted_feature_names'])}")
 
-    # Save result for pipeline consumption
+    # Save
     import os
     os.makedirs("reports", exist_ok=True)
     with open("reports/drift_check_result.json", "w") as f:
         json.dump(result, f, indent=2)
     print(f"\nFull result saved to reports/drift_check_result.json")
 
-    # Exit code based on status
     if result["status"] == "critical":
         print(f"\nCRITICAL: {result['drift_share']*100:.1f}% of features drifted "
               f"(threshold: {DRIFT_SHARE_CRITICAL*100:.0f}%)")
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         print(f"\nWARNING: {result['drift_share']*100:.1f}% of features drifted "
               f"(threshold: {DRIFT_SHARE_WARNING*100:.0f}%)")
         print("Monitor closely. Retraining may be needed soon.")
-        sys.exit(0)  # warning but not failure
+        sys.exit(0)
     else:
         print("\nAll clear. Feature distributions are stable.")
         sys.exit(0)

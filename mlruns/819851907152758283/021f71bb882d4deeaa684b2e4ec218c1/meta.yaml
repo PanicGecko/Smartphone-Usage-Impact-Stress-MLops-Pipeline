@@ -1,0 +1,14 @@
+artifact_uri: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283/021f71bb882d4deeaa684b2e4ec218c1/artifacts
+end_time: 1777477763969
+entry_point_name: ''
+experiment_id: '819851907152758283'
+lifecycle_stage: active
+run_id: 021f71bb882d4deeaa684b2e4ec218c1
+run_name: entertaining-pig-217
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1777477761267
+status: 3
+tags: []
+user_id: root

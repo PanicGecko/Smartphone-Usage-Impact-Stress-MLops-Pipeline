@@ -1,0 +1,14 @@
+artifact_uri: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283/9f7756645e33430085dec846a685b0cf/artifacts
+end_time: 1777478132483
+entry_point_name: ''
+experiment_id: '819851907152758283'
+lifecycle_stage: active
+run_id: 9f7756645e33430085dec846a685b0cf
+run_name: grandiose-bug-294
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1777478114976
+status: 3
+tags: []
+user_id: root

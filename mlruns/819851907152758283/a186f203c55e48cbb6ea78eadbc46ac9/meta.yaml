@@ -1,0 +1,14 @@
+artifact_uri: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283/a186f203c55e48cbb6ea78eadbc46ac9/artifacts
+end_time: 1777478183350
+entry_point_name: ''
+experiment_id: '819851907152758283'
+lifecycle_stage: active
+run_id: a186f203c55e48cbb6ea78eadbc46ac9
+run_name: overjoyed-snipe-148
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1777478181759
+status: 3
+tags: []
+user_id: root

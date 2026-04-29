@@ -1,0 +1,8 @@
+artifact_location: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283
+creation_time: 1777477761223
+experiment_id: '819851907152758283'
+last_update_time: 1777477761223
+lifecycle_stage: active
+name: smartphone-stress-impact-prediction
+trace_location: null
+workspace: default

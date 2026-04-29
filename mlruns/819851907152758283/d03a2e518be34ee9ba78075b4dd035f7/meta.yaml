@@ -1,0 +1,14 @@
+artifact_uri: file:///home/work/Social_Media_Stress_Prediction_MLops_Pipeline/mlruns/819851907152758283/d03a2e518be34ee9ba78075b4dd035f7/artifacts
+end_time: 1777477931055
+entry_point_name: ''
+experiment_id: '819851907152758283'
+lifecycle_stage: active
+run_id: d03a2e518be34ee9ba78075b4dd035f7
+run_name: unequaled-vole-787
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1777477922884
+status: 3
+tags: []
+user_id: root
