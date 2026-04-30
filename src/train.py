@@ -77,7 +77,6 @@ def train_model(config=None):
     X_train = preprocessor.fit_transform(X_train)
     X_test = preprocessor.transform(X_test)
 
-    mlflow.set_tracking_uri(f"file://{PROJECT_ROOT / 'mlruns'}")
     mlflow.set_experiment("smartphone-stress-impact-prediction")
 
     # Start MLflow
