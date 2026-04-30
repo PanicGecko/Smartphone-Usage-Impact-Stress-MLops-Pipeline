@@ -76,16 +76,16 @@ jobs:
       - name: Train model
         run: python src/train.py
 
-      # - name: Upload metrics as artifact
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: training-metrics
-      #     path: metrics/results.json
+      - name: Upload metrics as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-metrics
+          path: metrics/results.json
 
-      # - name: Upload model as artifact
-      #   if: success()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: trained-model
-      #     path: models/model.pkl
+      - name: Upload model as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: models/model.pkl
