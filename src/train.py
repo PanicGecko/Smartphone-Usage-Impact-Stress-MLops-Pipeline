@@ -77,64 +77,98 @@ def train_model(config=None, training=False):
     X_train = preprocessor.fit_transform(X_train)
     X_test = preprocessor.transform(X_test)
 
-    mlflow.set_experiment("smartphone-stress-impact-prediction")
+    if training:
+        # Set MLflow experiment name
+        mlflow.set_experiment("smartphone-stress-impact-prediction")
 
-    # Start MLflow
-    mlflow.set_experiment("smartphone-stress-impact-prediction")
-    with mlflow.start_run():
-        mlflow.log_param("model", config["model_type"])
-        mlflow.log_param("random_state", config["random_state"])
+        # Start MLflow run
+        with mlflow.start_run() as run:
+            # Log parameters
+            mlflow.log_param("model", config["model_type"])
+            mlflow.log_param("random_state", config["random_state"])
 
-        if config["model_type"] == "Logistic Regression":
-            mlflow.log_param("C", config["C"])
-            mlflow.log_param("max_iter", str(config["max_iter"]))
-        elif config["model_type"] == "RandomForest":
-            mlflow.log_param("n_estimators", str(config["n_estimators"]))
-            mlflow.log_param("max_depth", str(config["max_depth"]))
-        elif config["model_type"] == "Gradient Boosting":
-            mlflow.log_param("learning_rate", str(config["learning_rate"]))
-            mlflow.log_param("max_depth", str(config["max_depth"]))
-            mlflow.log_param("max_iter", str(config["max_iter"]))
+            # Add specific parameters based on model type
+            if config["model_type"] == "RandomForest":
+                mlflow.log_param("n_estimators", config["n_estimators"])
+                mlflow.log_param("max_depth", config["max_depth"])
+            elif config["model_type"] == "Logistic Regression":
+                mlflow.log_param("C", config["C"])
+                mlflow.log_param("max_iter", config["max_iter"])
+            elif config["model_type"] == "Gradient Boosting":
+                mlflow.log_param("learning_rate", config["learning_rate"])
+                mlflow.log_param("max_depth", config["max_depth"])
+                mlflow.log_param("max_iter", config["max_iter"])
 
-        # Train
-        print("Training random forest...")
-        model = RandomForestClassifier(
-            n_estimators=config["n_estimators"],
-            max_depth=config["max_depth"],
-            random_state=config["random_state"]
-        )
-        model.fit(X_train, y_train)
+            # Train
+            print("Training random forest...")
+            model = RandomForestClassifier(
+                n_estimators=config["n_estimators"],
+                max_depth=config["max_depth"],
+                random_state=config["random_state"]
+            )
+            model.fit(X_train, y_train)
 
-        # Evaluate
-        y_pred = model.predict(X_test)
-        metrics = evaluate_model(y_test, y_pred)
-        metrics["train_size"] = len(X_train)
-        metrics["test_size"] = len(X_test)
-        metrics["n_features"] = X_train.shape[1]
+            # Evaluate
+            y_pred = model.predict(X_test)
+            metrics = evaluate_model(y_test, y_pred)
+            metrics["train_size"] = len(X_train)
+            metrics["test_size"] = len(X_test)
+            metrics["n_features"] = X_train.shape[1]
 
-        mlflow.log_metric("accuracy", metrics["accuracy"])
-        mlflow.log_metric("precision", metrics["precision"])
-        mlflow.log_metric("recall", metrics["recall"])
-        mlflow.log_metric("f1_score", metrics["f1_score"])
+            mlflow.log_metric("accuracy", metrics["accuracy"])
+            mlflow.log_metric("precision", metrics["precision"])
+            mlflow.log_metric("recall", metrics["recall"])
+            mlflow.log_metric("f1_score", metrics["f1_score"])
 
-        # ── Log the trained model as an artifact ──
-        
+            # Check thresholds
+            check_thresholds(metrics, {"accuracy": config["min_accuracy"], "f1_score": config["min_f1"]})
 
-        # Check thresholds
-        check_thresholds(metrics, {"accuracy": config["min_accuracy"], "f1_score": config["min_f1"]})
-
-        if training:
+            # Save model
             os.makedirs("models", exist_ok=True)
             model_path = "models/model.pkl"
-            save_model(model, model_path)
-            mlflow.sklearn.log_model(model, "model")
+            with open(model_path, "wb") as f:
+                pickle.dump(model, f)
+            print(f"\nModel saved to {model_path}")
 
+            # Save metrics
             os.makedirs("metrics", exist_ok=True)
             metrics_path = "metrics/results.json"
-            save_metrics(metrics, metrics_path)
-            
+            with open(metrics_path, "w") as f:
+                json.dump(metrics, f, indent=2)
+            print(f"Metrics saved to {metrics_path}")
+
+            return metrics
 
         
+    print("Training random forest...")
+    model = RandomForestClassifier(
+        n_estimators=config["n_estimators"],
+        max_depth=config["max_depth"],
+        random_state=config["random_state"]
+    )
+    model.fit(X_train, y_train)
+
+    # Evaluate
+    y_pred = model.predict(X_test)
+    metrics = evaluate_model(y_test, y_pred)
+    metrics["train_size"] = len(X_train)
+    metrics["test_size"] = len(X_test)
+    metrics["n_features"] = X_train.shape[1]
+    check_thresholds(metrics, {"accuracy": config["min_accuracy"], "f1_score": config["min_f1"]})
+
+    # Save model
+    os.makedirs("models", exist_ok=True)
+    model_path = "models/model.pkl"
+    with open(model_path, "wb") as f:
+        pickle.dump(model, f)
+    print(f"\nModel saved to {model_path}")
+
+    # Save metrics
+    os.makedirs("metrics", exist_ok=True)
+    metrics_path = "metrics/results.json"
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=2)
+    print(f"Metrics saved to {metrics_path}")
 
     return metrics
 
