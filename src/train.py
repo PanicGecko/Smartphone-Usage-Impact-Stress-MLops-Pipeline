@@ -175,7 +175,7 @@ def train_model(config=None, training=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train ML model.")
     parser.add_argument("--config", type=str, default="configs/train_config.yaml", help="Path to config YAML file")
-    parser.add_argument("--train", action="train")
+    parser.add_argument("--train", action="store_true")
     args = parser.parse_args()
     
 
