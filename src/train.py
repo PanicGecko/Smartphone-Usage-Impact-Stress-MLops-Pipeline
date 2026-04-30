@@ -30,7 +30,7 @@ def load_data(relative_path):
     print(f"Loading data from {full_path}...")
     return pd.read_csv(full_path)
 
-def train_model(config=None):
+def train_model(config=None, training=False):
     """Full training pipeline. Returns metrics dictionary."""
     if config is None:
         config = CONFIG
@@ -118,32 +118,37 @@ def train_model(config=None):
         mlflow.log_metric("f1_score", metrics["f1_score"])
 
         # ── Log the trained model as an artifact ──
-        mlflow.sklearn.log_model(model, "model")
+        
 
         # Check thresholds
         check_thresholds(metrics, {"accuracy": config["min_accuracy"], "f1_score": config["min_f1"]})
 
-        # Save model
-        os.makedirs("models", exist_ok=True)
-        model_path = "models/model.pkl"
-        save_model(model, model_path)
+        if training:
+            os.makedirs("models", exist_ok=True)
+            model_path = "models/model.pkl"
+            save_model(model, model_path)
+            mlflow.sklearn.log_model(model, "model")
 
-        # Save metrics
-        os.makedirs("metrics", exist_ok=True)
-        metrics_path = "metrics/results.json"
-        save_metrics(metrics, metrics_path)
+            os.makedirs("metrics", exist_ok=True)
+            metrics_path = "metrics/results.json"
+            save_metrics(metrics, metrics_path)
+            
+
+        
 
     return metrics
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train ML model.")
     parser.add_argument("--config", type=str, default="configs/train_config.yaml", help="Path to config YAML file")
+    parser.add_argument("--train", action="train")
     args = parser.parse_args()
+    
 
     config_path = PROJECT_ROOT / args.config
     config = load_config(config_path)
 
-    metrics = train_model(config)
+    metrics = train_model(config, training=args.train)
 
     # Exit with error if thresholds not met
     if metrics["accuracy"] < config["min_accuracy"]:
