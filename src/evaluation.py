@@ -1,4 +1,6 @@
 import numpy as np
+import json
+import pickle
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def evaluate_model(y_true, y_pred):
@@ -8,4 +10,28 @@ def evaluate_model(y_true, y_pred):
         "recall": round(recall_score(y_true, y_pred, average='macro', zero_division=0), 4),
         "f1_score": round(f1_score(y_true, y_pred, average='macro', zero_division=0), 4),
     }
+    print(f"\nResults:")
+    print(f"  Accuracy:  {metrics['accuracy']}")
+    print(f"  Precision: {metrics['precision']}")
+    print(f"  Recall:    {metrics['recall']}")
+    print(f"  F1 Score:  {metrics['f1_score']}")
     return metrics
+
+def check_thresholds(metrics, thresholds):
+    for metric, threshold in thresholds.items():
+        if metrics[metric] < threshold:
+            print(f"\nWARNING: {metric} {metrics[metric]} is below threshold {threshold}")
+        else:
+            print(f"\n{metric} {metrics[metric]} is above threshold {threshold}")
+
+def save_metrics(metrics, path):
+    with open(path, "w") as f:
+        json.dump(metrics, f, indent=2)
+    print(f"Metrics saved to {path}")
+
+def save_model(model, path):
+    with open(path, "wb") as f:
+        pickle.dump(model, f)
+    print(f"Model saved to {path}")
+
+    

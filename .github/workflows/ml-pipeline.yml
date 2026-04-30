@@ -76,6 +76,14 @@ jobs:
       - name: Train model
         run: python src/train.py
 
+      - name: Upload MLflow runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-runs
+          path: mlruns/
+          retention-days: 90
+
       - name: Upload metrics as artifact
         if: always()
         uses: actions/upload-artifact@v4
